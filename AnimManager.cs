@@ -3,11 +3,12 @@ using Microsoft.Xna.Framework.Graphics;
 using SharpDX.XAudio2;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpaceInvaders
+namespace COOKING_GAME
 {
     internal class AnimManager
     {
@@ -28,22 +29,23 @@ namespace SpaceInvaders
 
         public AnimManager()
         {
-            
             millisecondsPerFrame = 100;
         }
 
-        public AnimManager(int milliPerFrame, List<Rectangle> rectangles) 
+        public AnimManager(int milliPerFrame, List<Rectangle> sourceRectangles) 
         {
             millisecondsPerFrame = milliPerFrame;
-            this.sourceRectangles = rectangles;
+            this.sourceRectangles = sourceRectangles;
         }
         #endregion
 
         #region methods
 
+
+
         public Rectangle Update(GameTime gameTime)
         {
-            if (active) 
+            if (active && sourceRectangles.Count != 0) 
             {
 
                 timeSinceLastFrame += gameTime.ElapsedGameTime.Milliseconds;
@@ -75,9 +77,7 @@ namespace SpaceInvaders
 
         public void Add(string animationName,List<Rectangle> rectangles)
         {
-
             animations.Add(animationName, rectangles);
-            sourceRectangles = animations.Values.ToList()[0];
         }
 
         public void Start()
