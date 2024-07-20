@@ -7,13 +7,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace COOKING_GAME
 {
     internal class Character
     {
         #region fields and properties
-        private int defaultAccceleration = 3;
+        private float defaultAccceleration = 9f;
+        private Vector2 defaultWalkSpeed = new Vector2(3,3);
         private Texture2D animationSheet;
         private Vector2 position = new Vector2();
         private AnimManager animationManager;
@@ -28,6 +30,8 @@ namespace COOKING_GAME
 
         public Texture2D AnimationTextures { get { return animationSheet; } }
 
+        public Vector2 Position { get { return position; } }
+
         #endregion
 
 
@@ -39,7 +43,7 @@ namespace COOKING_GAME
         public Character(Game1 game) 
         {
             string animationName = "";
-            animationManager = new AnimManager();
+            animationManager = new AnimManager(400);
             animationSheet = game.Content.Load<Texture2D>("Main Character SpreadSheet");
             frameWidth = animationSheet.Width / 4;
             frameHeight = animationSheet.Height / 4;
@@ -67,7 +71,7 @@ namespace COOKING_GAME
                         animationName = "walkRight";
                         break;
                 }
-                animationManager.Add(animationName, animationRects);
+                animationManager.Add(animationName, new List<Rectangle>(animationRects));
                 animationRects.Clear();
             }
 
@@ -92,7 +96,7 @@ namespace COOKING_GAME
                         animationName = "idleRight";
                         break;
                 }
-                animationManager.Add(animationName, animationRects);
+                animationManager.Add(animationName, new List<Rectangle>(animationRects));
                 animationRects.Clear();
             }
             animationManager.ChangeAnimation("idleRight");
@@ -103,30 +107,71 @@ namespace COOKING_GAME
 
         #region methods
 
-        public void Update(GameTime gameTime)
+        public void Update(GameTime gameTime, KeyboardState kstate)
         {
+            AccelerateInDirection(kstate, gameTime);
             MoveCharacter();
+            SmoothTurningDirections(kstate, gameTime);
             UpdateAnimations(gameTime);
         }
 
-        public void AccelerateInDirection(KeyboardState keyState) 
+
+        
+        private void SmoothTurningDirections(KeyboardState kstate, GameTime gameTime)
         {
-            if (keyState.IsKeyDown(Keys.W)) 
-            {
-                velocity += new Vector2(0, -1) * defaultAccceleration;
+            //if main character wants to move left but is moving right, instantly change velocity to the negative of itself for smoother movement
+
+            if (kstate.IsKeyDown(Keys.W) && velocity.Y > 0) {
+                velocity.Y = -velocity.Y;
             }
-            if (keyState.IsKeyDown(Keys.S)) 
+            if (kstate.IsKeyDown(Keys.S) && velocity.Y < 0)
             {
-                velocity += new Vector2(0, 1) * defaultAccceleration;
+                velocity.Y = -velocity.Y;
             }
-            if (keyState.IsKeyDown(Keys.A)) 
+            if (kstate.IsKeyDown(Keys.A) && velocity.X > 0) {
+                velocity.X = -velocity.X;
+            }
+            if (kstate.IsKeyDown(Keys.D) && velocity.X < 0) {  velocity.X = -velocity.X; }
+        }
+
+        public void AccelerateInDirection(KeyboardState keyState, GameTime gameTime) 
+        {
+            int accelerationFactor = 10;
+            var delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (keyState.IsKeyDown(Keys.W) && velocity.Y > -defaultWalkSpeed.Y) 
             {
-                velocity += new Vector2(-1, 0) * defaultAccceleration;
+                velocity += new Vector2(0, -1) * defaultAccceleration * delta;
             }
-            if (keyState.IsKeyDown(Keys.D))
+            if (keyState.IsKeyDown(Keys.S)&& velocity.Y < defaultWalkSpeed.Y) 
             {
-                velocity += new Vector2(1, 0) * defaultAccceleration;
+                velocity += new Vector2(0, 1) * defaultAccceleration * delta;
             }
+            if (keyState.IsKeyDown(Keys.A) && velocity.X > -defaultWalkSpeed.X) 
+            {
+                velocity += new Vector2(-1, 0) * defaultAccceleration * delta;
+            }
+            if (keyState.IsKeyDown(Keys.D) && velocity.X < defaultWalkSpeed.X)
+            {
+                velocity += new Vector2(1, 0) * defaultAccceleration * delta;
+            }
+            //if all keys are not pressed apply friction when moving
+            if (!keyState.IsKeyDown(Keys.S) && !keyState.IsKeyDown(Keys.W) && velocity.Y != 0)
+            {
+                velocity.Y -= velocity.Y * accelerationFactor * delta;
+                if (velocity.Y < 0.2)
+                {
+                    velocity.Y = 0;
+                }
+            }
+            if (!keyState.IsKeyDown(Keys.A) && !keyState.IsKeyDown(Keys.D) && velocity.X != 0)
+            {
+                velocity.X -= velocity.X * accelerationFactor * delta;
+                if (velocity.X < 0.2)
+                {
+                    velocity.X = 0;
+                }
+            }
+            Debug.WriteLine(velocity);
         }
 
         public Rectangle UpdateAnimations(GameTime gameTime)

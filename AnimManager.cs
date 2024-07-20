@@ -32,10 +32,9 @@ namespace COOKING_GAME
             millisecondsPerFrame = 100;
         }
 
-        public AnimManager(int milliPerFrame, List<Rectangle> sourceRectangles) 
+        public AnimManager(int milliPerFrame) 
         {
             millisecondsPerFrame = milliPerFrame;
-            this.sourceRectangles = sourceRectangles;
         }
         #endregion
 

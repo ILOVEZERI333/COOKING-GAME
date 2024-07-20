@@ -33,16 +33,14 @@ namespace COOKING_GAME
 
         protected override void Update(GameTime gameTime)
         {
+            KeyboardState kstate = Keyboard.GetState();
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            mainCharacter.UpdateAnimations(gameTime);
+            mainCharacter.Update(gameTime, kstate);
 
 
-            if (Keyboard.GetState().IsKeyDown(Keys.W)) 
-            {
-                
-            }
+            
 
 
             // TODO: Add your update logic here
@@ -56,7 +54,7 @@ namespace COOKING_GAME
             try
             {
                 _spriteBatch.Begin(samplerState: SamplerState.PointClamp, sortMode: SpriteSortMode.FrontToBack);
-                _spriteBatch.Draw(mainCharacter.AnimationTextures, new Vector2(0, 0), mainCharacter.CurrentFrame, Color.White);
+                _spriteBatch.Draw(mainCharacter.AnimationTextures, mainCharacter.Position, mainCharacter.CurrentFrame, Color.White);
             }
             finally 
             {
