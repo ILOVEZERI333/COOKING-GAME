@@ -15,7 +15,7 @@ namespace COOKING_GAME
     {
         #region fields and properties
         private float defaultAccceleration = 9f;
-        private Vector2 defaultWalkSpeed = new Vector2(3,3);
+        private int defaultWalkSpeed = 20;
         private Texture2D animationSheet;
         private Vector2 position = new Vector2();
         private AnimManager animationManager;
@@ -33,8 +33,6 @@ namespace COOKING_GAME
         public Vector2 Position { get { return position; } }
 
         #endregion
-
-
 
 
 
@@ -110,7 +108,6 @@ namespace COOKING_GAME
         public void Update(GameTime gameTime, KeyboardState kstate)
         {
             AccelerateInDirection(kstate, gameTime);
-            MoveCharacter();
             SmoothTurningDirections(kstate, gameTime);
             UpdateAnimations(gameTime);
         }
@@ -120,7 +117,6 @@ namespace COOKING_GAME
         private void SmoothTurningDirections(KeyboardState kstate, GameTime gameTime)
         {
             //if main character wants to move left but is moving right, instantly change velocity to the negative of itself for smoother movement
-
             if (kstate.IsKeyDown(Keys.W) && velocity.Y > 0) {
                 velocity.Y = -velocity.Y;
             }
@@ -136,27 +132,47 @@ namespace COOKING_GAME
 
         public void AccelerateInDirection(KeyboardState keyState, GameTime gameTime) 
         {
-            int accelerationFactor = 10;
+            float currentSpeed = 0;
+            float accelerationFactor = 5f;
             var delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            if (keyState.IsKeyDown(Keys.W) && velocity.Y > -defaultWalkSpeed.Y) 
+            //if key is down and char is moving slower than default speed then speed them up
+            if (currentSpeed < defaultWalkSpeed)
             {
-                velocity += new Vector2(0, -1) * defaultAccceleration * delta;
+                if (keyState.IsKeyDown(Keys.W))
+                {
+                    currentSpeed += accelerationFactor;
+                    accelerationFactor += 1f;
+                    velocity.Y = -currentSpeed; 
+                }
+                if (keyState.IsKeyDown(Keys.S))
+                {
+                    currentSpeed += accelerationFactor;
+                    accelerationFactor += 1f;
+                    velocity.Y = currentSpeed;
+                }
+                if (keyState.IsKeyDown(Keys.A))
+                {
+                    currentSpeed += accelerationFactor;
+                    accelerationFactor += 1f;
+                    velocity.X = -currentSpeed;
+                }
+                if (keyState.IsKeyDown(Keys.D))
+                {
+                    currentSpeed += accelerationFactor;
+                    accelerationFactor += 1f;
+                    velocity.X = currentSpeed;
+                }
+                if (velocity != Vector2.Zero) 
+                {
+                    velocity.Normalize();
+                }
+                position += velocity * 5;
             }
-            if (keyState.IsKeyDown(Keys.S)&& velocity.Y < defaultWalkSpeed.Y) 
-            {
-                velocity += new Vector2(0, 1) * defaultAccceleration * delta;
-            }
-            if (keyState.IsKeyDown(Keys.A) && velocity.X > -defaultWalkSpeed.X) 
-            {
-                velocity += new Vector2(-1, 0) * defaultAccceleration * delta;
-            }
-            if (keyState.IsKeyDown(Keys.D) && velocity.X < defaultWalkSpeed.X)
-            {
-                velocity += new Vector2(1, 0) * defaultAccceleration * delta;
-            }
+            
             //if all keys are not pressed apply friction when moving
             if (!keyState.IsKeyDown(Keys.S) && !keyState.IsKeyDown(Keys.W) && velocity.Y != 0)
             {
+                
                 velocity.Y -= velocity.Y * accelerationFactor * delta;
                 if (velocity.Y < 0.2)
                 {
@@ -171,7 +187,11 @@ namespace COOKING_GAME
                     velocity.X = 0;
                 }
             }
-            Debug.WriteLine(velocity);
+            if (!keyState.IsKeyDown(Keys.A) && !keyState.IsKeyDown(Keys.D) && !keyState.IsKeyDown(Keys.S) && !keyState.IsKeyDown(Keys.W) && (velocity.X != 0 || velocity.Y != 0)) 
+            {
+                currentSpeed -= accelerationFactor;
+                accelerationFactor -= 1f;
+            }
         }
 
         public Rectangle UpdateAnimations(GameTime gameTime)
@@ -180,10 +200,7 @@ namespace COOKING_GAME
             return currentRectangle;
         }
 
-        private void MoveCharacter() 
-        {
-            position += velocity;
-        }
+
         #endregion
 
 
