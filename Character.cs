@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Drawing.Text;
 
 namespace COOKING_GAME
 {
@@ -15,12 +16,14 @@ namespace COOKING_GAME
     {
         #region fields and properties
         private float defaultAccceleration = 9f;
-        private int defaultWalkSpeed = 20;
+        float currentSpeed = 0;
+        private int defaultWalkSpeed = 100;
         private Texture2D animationSheet;
         private Vector2 position = new Vector2();
         private AnimManager animationManager;
         private List<Rectangle> animationRects = new List<Rectangle>();
         private int frameWidth;
+        private string directionOfLastMovement;
         private int frameHeight;
         private Rectangle currentRectangle;
         private Vector2 velocity = new Vector2();
@@ -41,62 +44,65 @@ namespace COOKING_GAME
         public Character(Game1 game) 
         {
             string animationName = "";
-            animationManager = new AnimManager(400);
-            animationSheet = game.Content.Load<Texture2D>("Main Character SpreadSheet");
-            frameWidth = animationSheet.Width / 4;
+            animationManager = new AnimManager(100);
+            animationSheet = game.Content.Load<Texture2D>("walk");
+            frameWidth = animationSheet.Width / 8;
             frameHeight = animationSheet.Height / 4;
             //12 is the number of animations in the walking animation
 
             //walking animations
             for (int n = 0; n < 4; n++)
             {
-                for (int i = 2; i < 4; i++)
+                for (int i = 0; i < 8; i++)
                 {
                     animationRects.Add(new Rectangle(i * frameWidth, (n) * frameHeight, frameWidth, frameHeight));
                 }
                 switch (n)
                 {
                     case 0:
-                        animationName = "walkDown";
+                        animationName = "walkRight";
                         break;
                     case 1:
-                        animationName = "walkUp";
-                        break;
-                    case 2:
                         animationName = "walkLeft";
                         break;
+                    case 2:
+                        animationName = "walkDown";
+                        break;
                     case 3:
-                        animationName = "walkRight";
+                        animationName = "walkUp";
                         break;
                 }
                 animationManager.Add(animationName, new List<Rectangle>(animationRects));
                 animationRects.Clear();
             }
 
-            for (int n = 0; (n < 4); n++) 
+            animationSheet = game.Content.Load<Texture2D>("idle");
+            frameHeight = animationSheet.Height / 4;
+            frameWidth = animationSheet.Width / 4;
+            for (int n = 0; n < 4; n++) 
             {
-                for (int i = 0; i < 2; i++)
-                {
-                    animationRects.Add(new Rectangle(i * frameWidth,n * frameHeight, frameWidth, frameHeight));
+                for (int i = 0; i < 4; i++) {
+                    animationRects.Add(new Rectangle(i * frameWidth, (n) * frameHeight, frameWidth, frameHeight));
                 }
-                switch (n)
-                {
+
+                switch (n) {
                     case 0:
-                        animationName = "idleDown";
+                        animationName = "idleRight";
                         break;
                     case 1:
-                        animationName = "idleUp";
-                        break;
-                    case 2:
                         animationName = "idleLeft";
                         break;
+                    case 2:
+                        animationName = "idleDown";
+                        break;
                     case 3:
-                        animationName = "idleRight";
+                        animationName = "idleUp";
                         break;
                 }
                 animationManager.Add(animationName, new List<Rectangle>(animationRects));
                 animationRects.Clear();
             }
+
             animationManager.ChangeAnimation("idleRight");
         }
         #endregion
@@ -109,11 +115,9 @@ namespace COOKING_GAME
         {
             AccelerateInDirection(kstate, gameTime);
             SmoothTurningDirections(kstate, gameTime);
-            UpdateAnimations(gameTime);
+            UpdateAnimations(kstate, gameTime);
         }
 
-
-        
         private void SmoothTurningDirections(KeyboardState kstate, GameTime gameTime)
         {
             //if main character wants to move left but is moving right, instantly change velocity to the negative of itself for smoother movement
@@ -132,70 +136,100 @@ namespace COOKING_GAME
 
         public void AccelerateInDirection(KeyboardState keyState, GameTime gameTime) 
         {
-            float currentSpeed = 0;
-            float accelerationFactor = 5f;
+            float accelerationFactor = 0.1f;
             var delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
             //if key is down and char is moving slower than default speed then speed them up
-            if (currentSpeed < defaultWalkSpeed)
+            if (keyState.IsKeyDown(Keys.W))
             {
-                if (keyState.IsKeyDown(Keys.W))
-                {
-                    currentSpeed += accelerationFactor;
-                    accelerationFactor += 1f;
-                    velocity.Y = -currentSpeed; 
-                }
-                if (keyState.IsKeyDown(Keys.S))
-                {
-                    currentSpeed += accelerationFactor;
-                    accelerationFactor += 1f;
-                    velocity.Y = currentSpeed;
-                }
-                if (keyState.IsKeyDown(Keys.A))
-                {
-                    currentSpeed += accelerationFactor;
-                    accelerationFactor += 1f;
-                    velocity.X = -currentSpeed;
-                }
-                if (keyState.IsKeyDown(Keys.D))
-                {
-                    currentSpeed += accelerationFactor;
-                    accelerationFactor += 1f;
-                    velocity.X = currentSpeed;
-                }
-                if (velocity != Vector2.Zero) 
-                {
-                    velocity.Normalize();
-                }
-                position += velocity * 5;
+                directionOfLastMovement = "north";
+                currentSpeed += accelerationFactor;
+                accelerationFactor += 0.1f;
+                velocity.Y = -currentSpeed; 
             }
-            
+            if (keyState.IsKeyDown(Keys.S))
+            {
+                directionOfLastMovement = "south";
+                currentSpeed += accelerationFactor;
+                accelerationFactor += 0.1f;
+                velocity.Y = currentSpeed;
+            }
+            if (keyState.IsKeyDown(Keys.A))
+            {
+                directionOfLastMovement = "west";
+                currentSpeed += accelerationFactor;
+                accelerationFactor += 0.1f;
+                velocity.X = -currentSpeed;
+            }
+            if (keyState.IsKeyDown(Keys.D))
+            {
+                directionOfLastMovement = "east";
+                currentSpeed += accelerationFactor;
+                accelerationFactor += 0.1f;
+                velocity.X = currentSpeed;
+            }
+            if (velocity != Vector2.Zero) 
+            {
+                velocity.Normalize();
+            }
+            if (currentSpeed > defaultWalkSpeed) 
+            {
+                currentSpeed = defaultWalkSpeed;
+            }
+            position += velocity * 1.17f;
             //if all keys are not pressed apply friction when moving
             if (!keyState.IsKeyDown(Keys.S) && !keyState.IsKeyDown(Keys.W) && velocity.Y != 0)
             {
-                
-                velocity.Y -= velocity.Y * accelerationFactor * delta;
-                if (velocity.Y < 0.2)
-                {
-                    velocity.Y = 0;
-                }
+                velocity.Y =0;
             }
             if (!keyState.IsKeyDown(Keys.A) && !keyState.IsKeyDown(Keys.D) && velocity.X != 0)
             {
-                velocity.X -= velocity.X * accelerationFactor * delta;
-                if (velocity.X < 0.2)
-                {
-                    velocity.X = 0;
-                }
+                velocity.X =0;
             }
-            if (!keyState.IsKeyDown(Keys.A) && !keyState.IsKeyDown(Keys.D) && !keyState.IsKeyDown(Keys.S) && !keyState.IsKeyDown(Keys.W) && (velocity.X != 0 || velocity.Y != 0)) 
+            if (!keyState.IsKeyDown(Keys.A) && !keyState.IsKeyDown(Keys.D) && !keyState.IsKeyDown(Keys.S) && !keyState.IsKeyDown(Keys.W)) 
             {
-                currentSpeed -= accelerationFactor;
+                currentSpeed -= currentSpeed /3 * accelerationFactor;
                 accelerationFactor -= 1f;
             }
         }
 
-        public Rectangle UpdateAnimations(GameTime gameTime)
+        public Rectangle UpdateAnimations(KeyboardState kstate, GameTime gameTime)
         {
+
+            if (velocity.X > 0)
+            {
+                animationManager.ChangeAnimation("walkRight");
+            }
+            else if (velocity.X < 0)
+            {
+                animationManager.ChangeAnimation("walkLeft");
+            }
+            else if (velocity.Y > 0)
+            {
+                animationManager.ChangeAnimation("walkDown");
+            }
+            else if (velocity.Y < 0) {
+                animationManager.ChangeAnimation("walkUp");
+            }
+
+            if (velocity == Vector2.Zero) { 
+                switch (directionOfLastMovement) {
+                    case "east":
+                        animationManager.ChangeAnimation("idleRight");
+                        break;
+                    case "west":
+                        animationManager.ChangeAnimation("idleLeft");
+                        break;
+                    case "north":
+                        animationManager.ChangeAnimation("idleUp");
+                        break;
+                    case "south":
+                        animationManager.ChangeAnimation("idleDown");
+                        break;
+                    default:
+                        break;
+                }
+            }
+
             currentRectangle = animationManager.Update(gameTime);
             return currentRectangle;
         }

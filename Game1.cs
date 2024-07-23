@@ -53,7 +53,7 @@ namespace COOKING_GAME
             GraphicsDevice.Clear(Color.CornflowerBlue);
             try
             {
-                _spriteBatch.Begin(samplerState: SamplerState.PointClamp, sortMode: SpriteSortMode.FrontToBack);
+                _spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: Matrix.CreateScale(2.8f),sortMode: SpriteSortMode.FrontToBack);
                 _spriteBatch.Draw(mainCharacter.AnimationTextures, mainCharacter.Position, mainCharacter.CurrentFrame, Color.White);
             }
             finally 

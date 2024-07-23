@@ -20,6 +20,7 @@ namespace COOKING_GAME
         private List<Rectangle> sourceRectangles = new List<Rectangle>();
         private int indexer;
         private bool active = true;
+        private bool animationDone;
 
         public bool Active { get { return active; } }
         public List<Rectangle> SourceRectangles { get { return sourceRectangles; } }
@@ -51,18 +52,27 @@ namespace COOKING_GAME
                 if (millisecondsPerFrame < timeSinceLastFrame)
                 {
                     indexer++;
-                    if (indexer == sourceRectangles.Count)
+                    if (indexer >= sourceRectangles.Count)
                     {
                         indexer = 0;
                     }
                     timeSinceLastFrame = 0;
                 }
 
-                return sourceRectangles[indexer];
+                try
+                {
+                    Debug.WriteLine($"Frame Index: {indexer}, Total Frames: {sourceRectangles.Count}");
+                    return sourceRectangles[indexer];
+                }
+                catch (System.ArgumentOutOfRangeException) {
+                    indexer = 0;
+                    return sourceRectangles[indexer];
+                }
+                
             }
             else
                 //return a rectangle that is basically nothing (null makes .Draw method draw entire sprite)
-                return new Rectangle();
+                return new Rectangle(0,0,1,1);
             
         }
 
@@ -71,6 +81,7 @@ namespace COOKING_GAME
             if (animations.ContainsKey(animationName)) 
             {
                 sourceRectangles = animations[animationName];
+                Debug.WriteLine($"Changed Animation to: {animationName}");
             }
         }
 
