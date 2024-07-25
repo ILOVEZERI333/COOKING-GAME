@@ -111,11 +111,11 @@ namespace COOKING_GAME
 
         #region methods
 
-        public void Update(GameTime gameTime, KeyboardState kstate)
+        public void Update(GameTime gameTime, KeyboardState kstate, Game1 game)
         {
             AccelerateInDirection(kstate, gameTime);
             SmoothTurningDirections(kstate, gameTime);
-            UpdateAnimations(kstate, gameTime);
+            UpdateAnimations(kstate, gameTime, game);
         }
 
         private void SmoothTurningDirections(KeyboardState kstate, GameTime gameTime)
@@ -192,8 +192,17 @@ namespace COOKING_GAME
             }
         }
 
-        public Rectangle UpdateAnimations(KeyboardState kstate, GameTime gameTime)
+        public Rectangle UpdateAnimations(KeyboardState kstate, GameTime gameTime, Game1 game)
         {
+            if (velocity == Vector2.Zero)
+            {
+                animationSheet = game.Content.Load<Texture2D>("idle");
+            }
+            else {
+                animationSheet = game.Content.Load<Texture2D>("walk");
+            }
+
+
 
             if (velocity.X > 0)
             {

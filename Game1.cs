@@ -37,7 +37,7 @@ namespace COOKING_GAME
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            mainCharacter.Update(gameTime, kstate);
+            mainCharacter.Update(gameTime, kstate, this);
 
 
             
