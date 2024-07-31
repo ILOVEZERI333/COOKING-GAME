@@ -175,7 +175,7 @@ namespace COOKING_GAME
             {
                 currentSpeed = defaultWalkSpeed;
             }
-            position += velocity * 1.17f;
+            position += velocity * 2.0f;
             //if all keys are not pressed apply friction when moving
             if (!keyState.IsKeyDown(Keys.S) && !keyState.IsKeyDown(Keys.W) && velocity.Y != 0)
             {
@@ -191,7 +191,7 @@ namespace COOKING_GAME
                 accelerationFactor -= 1f;
             }
         }
-
+        
         public Rectangle UpdateAnimations(KeyboardState kstate, GameTime gameTime, Game1 game)
         {
             if (velocity == Vector2.Zero)

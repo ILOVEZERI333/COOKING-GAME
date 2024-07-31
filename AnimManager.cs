@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace COOKING_GAME
 {
     internal class AnimManager
@@ -61,12 +62,12 @@ namespace COOKING_GAME
 
                 try
                 {
-                    Debug.WriteLine($"Frame Index: {indexer}, Total Frames: {sourceRectangles.Count}");
                     return sourceRectangles[indexer];
                 }
                 catch (System.ArgumentOutOfRangeException) {
                     indexer = 0;
                     return sourceRectangles[indexer];
+                    
                 }
                 
             }
@@ -81,7 +82,6 @@ namespace COOKING_GAME
             if (animations.ContainsKey(animationName)) 
             {
                 sourceRectangles = animations[animationName];
-                Debug.WriteLine($"Changed Animation to: {animationName}");
             }
         }
 
